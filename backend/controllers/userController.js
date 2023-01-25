@@ -37,4 +37,21 @@ const registerUser = asyncHandler(async (req, res, next) => {
     throw new Error('Failed');
   }
 });
-module.exports = registerUser;
+
+const authUser = asyncHandler(async (req, res, next) => {
+  const { email, password } = req.body;
+
+  const user = await User.findOne({ email });
+
+  if (user && (await user.passwordCheck(password))) {
+    res.status(200).json({
+      _id: user._id,
+      token: generateToken(user._id),
+    });
+  } else {
+    res.status(400);
+    throw new Error('Failed');
+  }
+});
+
+module.exports = { registerUser, authUser };
