@@ -78,13 +78,11 @@ const createGroupChat = asyncHandler(async (req, res, next) => {
 
   let users = JSON.parse(req.body.users);
 
-  console.log(users);
   if (users.length < 2) {
     res.send(400).send({ message: 'more than 2 users required' });
   }
 
   users.push(req.user._id);
-  console.log(users);
 
   try {
     const groupChat = await Chat.create({
@@ -105,4 +103,83 @@ const createGroupChat = asyncHandler(async (req, res, next) => {
   }
 });
 
-module.exports = { accessChat, fetchChats, createGroupChat };
+const renameGroup = asyncHandler(async (req, res, next) => {
+  const { chatId, chatName } = req.body;
+
+  const updateGroupName = await Chat.findByIdAndUpdate(
+    { _id: chatId },
+    {
+      chatName,
+    },
+    {
+      new: true,
+    }
+  )
+    .populate('users', '-password')
+    .populate('groupAdmin', '-password');
+  if (!updateGroupName) {
+    res.status(400).json({
+      message: 'No chat',
+    });
+    return;
+  }
+  res.status(200).json(updateGroupName);
+});
+
+const addToGroup = asyncHandler(async (req, res) => {
+  const { chatId, userId } = req.body;
+
+  console.log(chatId);
+  console.log(userId);
+  const groupAdd = await Chat.findByIdAndUpdate(
+    {
+      _id: chatId,
+    },
+    {
+      $addToSet: { users: userId },
+    },
+    {
+      new: true,
+    }
+  )
+    .populate('users', '-password')
+    .populate('groupAdmin', '-password');
+
+  if (!groupAdd) {
+    res.send(400).json({ message: 'Invalid' });
+    return;
+  }
+  res.status(200).json(groupAdd);
+});
+
+const removeFromGroup = asyncHandler(async (req, res) => {
+  const { chatId, userId } = req.body;
+
+  const removeUser = await Chat.findByIdAndUpdate(
+    {
+      _id: chatId,
+    },
+    {
+      $pull: { users: userId },
+    },
+    {
+      new: true,
+    }
+  )
+    .populate('users', '-password')
+    .populate('groupAdmin', '-password');
+  if (!removeUser) {
+    res.status(400).json({ message: 'user not removed' });
+    return;
+  }
+  res.status(200).json(removeUser);
+});
+
+module.exports = {
+  accessChat,
+  fetchChats,
+  createGroupChat,
+  renameGroup,
+  addToGroup,
+  removeFromGroup,
+};

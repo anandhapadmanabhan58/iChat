@@ -4,13 +4,16 @@ const {
   accessChat,
   fetchChats,
   createGroupChat,
+  renameGroup,
+  addToGroup,
+  removeFromGroup,
 } = require('../controllers/chatControllers');
 const router = express.Router();
 
 router.route('/').post(checkJWT, accessChat).get(checkJWT, fetchChats);
 router.route('/group').post(checkJWT, createGroupChat);
-// router.route('/rename').put(checkJWT, renameGroup);
-// router.route('/removegroup').put(checkJWT, removeFromGroup);
-// router.route('/groupadd').put(checkJWT, addToGroup);
+router.route('/rename').patch(checkJWT, renameGroup);
+router.route('/removegroup').patch(checkJWT, removeFromGroup);
+router.route('/groupadd').patch(checkJWT, addToGroup);
 
 module.exports = router;
