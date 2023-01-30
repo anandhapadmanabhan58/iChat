@@ -149,19 +149,20 @@ const Signup = () => {
     <VStack spacing="5px">
       <FormControl id="first-name" isRequired>
         <FormLabel>Name</FormLabel>
-        <Input placeholder="Enter Name" onChange={onSetName} />
+        <Input id="name" placeholder="Enter Name" onChange={onSetName} />
       </FormControl>
 
       <FormControl id="email" isRequired>
         <FormLabel>Email</FormLabel>
         <Input
+          id="signup-email"
           type="email"
           placeholder="Enteryour Email ID"
           onChange={onSetEmail}
         />
       </FormControl>
 
-      <FormControl id="password" isRequired>
+      <FormControl id="signup-password" isRequired>
         <FormLabel>Password</FormLabel>
         <InputGroup size="md">
           <Input

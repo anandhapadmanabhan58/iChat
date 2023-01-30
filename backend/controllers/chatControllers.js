@@ -129,8 +129,6 @@ const renameGroup = asyncHandler(async (req, res, next) => {
 const addToGroup = asyncHandler(async (req, res) => {
   const { chatId, userId } = req.body;
 
-  console.log(chatId);
-  console.log(userId);
   const groupAdd = await Chat.findByIdAndUpdate(
     {
       _id: chatId,

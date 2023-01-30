@@ -77,6 +77,7 @@ const Login = () => {
       <FormControl id="email" isRequired>
         <FormLabel>Email</FormLabel>
         <Input
+          id="login-email"
           type="email"
           placeholder="Enteryour Email ID"
           onChange={onSetEmail}
