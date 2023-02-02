@@ -21,8 +21,11 @@ import {
 } from '@chakra-ui/react';
 import { useDisclosure } from '@chakra-ui/hooks';
 import { SearchIcon, BellIcon, ChevronDownIcon } from '@chakra-ui/icons';
+import axios from 'axios';
 
+import UserListItem from '../User/UserListItem';
 import { ChatState } from '../../context/ChatProvider';
+import ChatLoading from '../ChatLoading';
 import ProfileModal from './ProfileModal';
 
 const SideDrawer = () => {
@@ -42,13 +45,13 @@ const SideDrawer = () => {
   };
 
   const onSearchHandler = (event) => {
-    setSearch(event.target.value);
+    setSearch(event.target.value.trim());
   };
 
-  const handleSearch = () => {
+  const handleSearch = async () => {
     if (!search) {
       toast({
-        title: 'Empty',
+        title: 'Enter a user',
         status: 'warning',
         duration: 5000,
         isClosable: true,
@@ -58,9 +61,31 @@ const SideDrawer = () => {
     }
     try {
       setLoading(true);
+
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+
+      const { data } = await axios.get(`/api/v1/user?search=${search}`, config);
+
+      setLoading(false);
+      setSearchResult(data);
+    } catch (error) {
+      toast({
+        title: 'Req Error',
+        status: 'Error',
+        duration: 5000,
+        isClosable: true,
+        position: 'top',
+      });
+    }
+  };
+  const accessChat = (userId) => {
+    try {
     } catch (error) {}
   };
-
   return (
     <>
       <Box
@@ -124,6 +149,19 @@ const SideDrawer = () => {
               />
               <Button onClick={handleSearch}>Go</Button>
             </Box>
+            {loading ? (
+              <ChatLoading />
+            ) : (
+              searchResult?.map((user) => (
+                <UserListItem
+                  key={user._id}
+                  user={user}
+                  handleFunction={() => {
+                    accessChat(user._id);
+                  }}
+                />
+              ))
+            )}
           </DrawerBody>
         </DrawerContent>
       </Drawer>

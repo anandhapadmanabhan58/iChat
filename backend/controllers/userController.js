@@ -73,8 +73,6 @@ const allUsers = asyncHandler(async (req, res, next) => {
   });
 
   res.send(users);
-
-  console.log(keyword);
 });
 
 module.exports = { registerUser, authUser, allUsers };
