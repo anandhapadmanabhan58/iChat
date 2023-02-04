@@ -25,7 +25,7 @@ const accessChat = asyncHandler(async (req, res, next) => {
     select: 'name email pic',
   });
 
-  if (isChat > 0) {
+  if (isChat.length > 0) {
     res.send(isChat[0]);
   } else {
     let chatData = {

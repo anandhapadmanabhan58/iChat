@@ -18,6 +18,7 @@ import {
   DrawerBody,
   Input,
   useToast,
+  Spinner,
 } from '@chakra-ui/react';
 import { useDisclosure } from '@chakra-ui/hooks';
 import { SearchIcon, BellIcon, ChevronDownIcon } from '@chakra-ui/icons';
@@ -37,7 +38,7 @@ const SideDrawer = () => {
   const history = useHistory();
 
   const toast = useToast();
-  const { user } = ChatState();
+  const { user, setSelectedChat, chats, setChats } = ChatState();
 
   const signOutHandler = () => {
     localStorage.removeItem('userInfo');
@@ -57,6 +58,7 @@ const SideDrawer = () => {
         isClosable: true,
         position: 'top',
       });
+
       return;
     }
     try {
@@ -82,9 +84,32 @@ const SideDrawer = () => {
       });
     }
   };
-  const accessChat = (userId) => {
+  const accessChat = async (userID) => {
     try {
-    } catch (error) {}
+      setLoadingChat(true);
+      const config = {
+        headers: {
+          'Content-type': 'application/json',
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+      const { data } = await axios.post(`/api/v1/chat`, { userID }, config);
+
+      if (!chats.find((c) => c._id === data._id)) setChats([data, ...chats]);
+
+      setSelectedChat(data);
+      setLoadingChat(false);
+      onClose();
+    } catch (error) {
+      toast({
+        title: 'API Error',
+        description: error.message,
+        status: 'Error',
+        duration: 5000,
+        isClosable: true,
+        position: 'top',
+      });
+    }
   };
   return (
     <>
@@ -162,6 +187,7 @@ const SideDrawer = () => {
                 />
               ))
             )}
+            {loadingChat && <Spinner ml="auto" display="flex" />}
           </DrawerBody>
         </DrawerContent>
       </Drawer>
