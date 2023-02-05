@@ -19,6 +19,7 @@ import {
   Input,
   useToast,
   Spinner,
+  Center,
 } from '@chakra-ui/react';
 import { useDisclosure } from '@chakra-ui/hooks';
 import { SearchIcon, BellIcon, ChevronDownIcon } from '@chakra-ui/icons';
@@ -187,7 +188,11 @@ const SideDrawer = () => {
                 />
               ))
             )}
-            {loadingChat && <Spinner ml="auto" display="flex" />}
+            {loadingChat && (
+              <Box display="flex" justifyContent="center">
+                <Spinner />
+              </Box>
+            )}
           </DrawerBody>
         </DrawerContent>
       </Drawer>

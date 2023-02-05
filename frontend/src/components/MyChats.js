@@ -1,13 +1,15 @@
 import { Box, useToast, Button, Text, Stack } from '@chakra-ui/react';
 import { AddIcon } from '@chakra-ui/icons';
+
 import axios from 'axios';
 import React, { useEffect } from 'react';
 
 import { ChatState } from '../context/ChatProvider';
+import GroupChatModal from './ui/GroupChatModal';
 import { getSender } from '../config/ChatLogics';
 import ChatLoading from './ChatLoading';
 
-const MyChats = () => {
+const MyChats = ({ fetchAgain }) => {
   const { selectedChat, setSelectedChat, user, chats, setChats } = ChatState();
 
   const toast = useToast();
@@ -35,7 +37,7 @@ const MyChats = () => {
   useEffect(() => {
     console.log('useEff');
     fetchChats();
-  }, []);
+  }, [fetchAgain]);
 
   return (
     <Box
@@ -58,13 +60,15 @@ const MyChats = () => {
         w="100%"
         alignItems="center"
       >
-        <Button
-          display="flex"
-          fontSize={{ base: '17px', md: '10px', lg: '17px' }}
-          rightIcon={<AddIcon />}
-        >
-          Add Group
-        </Button>
+        <GroupChatModal>
+          <Button
+            display="flex"
+            fontSize={{ base: '17px', md: '10px', lg: '17px' }}
+            rightIcon={<AddIcon />}
+          >
+            Add Group
+          </Button>
+        </GroupChatModal>
       </Box>
       <Box
         display="flex"
