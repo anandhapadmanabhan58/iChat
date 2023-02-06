@@ -1,14 +1,101 @@
-import React from 'react';
-import { Box, IconButton, Text } from '@chakra-ui/react';
+import { useState, useEffect } from 'react';
+import {
+  Box,
+  FormControl,
+  IconButton,
+  Input,
+  Spinner,
+  Text,
+  useToast,
+} from '@chakra-ui/react';
+import axios from 'axios';
 
+import ScrollableChat from './ScrollableChat';
 import { ChatState } from '../context/ChatProvider';
 import { getSender, getSenderUser } from '../config/ChatLogics';
 import { ArrowBackIcon } from '@chakra-ui/icons';
 import UpdateGroupChatModal from './ui/UpdateGroupChatModal';
 import ProfileModal from './ui/ProfileModal';
-const SingleChat = ({ fetchAgain, setFetchAgain }) => {
-  const { user, selectedChat, setSelectedChat } = ChatState();
+import './Styles.css';
 
+const SingleChat = ({ fetchAgain, setFetchAgain }) => {
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [newMessage, setNewMessage] = useState();
+
+  const { user, selectedChat, setSelectedChat } = ChatState();
+  const toast = useToast();
+
+  const fetchMessages = async () => {
+    if (!selectedChat) {
+      return;
+    }
+    const config = {
+      headers: {
+        Authorization: `Bearer ${user.token}`,
+      },
+    };
+    setLoading(true);
+    const { data } = await axios.get(
+      `/api/v1/message/${selectedChat._id}`,
+      config
+    );
+    console.log(messages);
+    setMessages(data);
+    setLoading(false);
+    try {
+    } catch (error) {
+      toast({
+        title: 'Message Load error',
+        description: error.message,
+        status: 'Error',
+        duration: 5000,
+        isClosable: true,
+        position: 'top',
+      });
+    }
+  };
+  useEffect(() => {
+    fetchMessages();
+  }, [selectedChat]);
+  const sendMessage = async (event) => {
+    if (event.key === 'Enter' && newMessage) {
+      try {
+        const config = {
+          headers: {
+            'Content-type': 'application/json',
+            Authorization: `Bearer ${user.token}`,
+          },
+        };
+        setNewMessage('');
+        const { data } = await axios.post(
+          '/api/v1/message',
+          {
+            content: newMessage,
+            chatId: selectedChat._id,
+          },
+          config
+        );
+
+        setMessages([...messages, data]);
+      } catch (error) {
+        toast({
+          title: 'Message Load error',
+          description: error.message,
+          status: 'Error',
+          duration: 5000,
+          isClosable: true,
+          position: 'top',
+        });
+      }
+    }
+  };
+
+  const typingHandler = (e) => {
+    setNewMessage(e.target.value);
+
+    //typing
+  };
   return (
     <>
       {selectedChat ? (
@@ -31,7 +118,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
 
             {!selectedChat.isGroupChat ? (
               <>
-                {getSender(user, selectedChat.users)}{' '}
+                {getSender(user, selectedChat.users)}
                 <ProfileModal user={getSenderUser(user, selectedChat.users)} />
               </>
             ) : (
@@ -40,6 +127,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
                 <UpdateGroupChatModal
                   fetchAgain={fetchAgain}
                   setFetchAgain={setFetchAgain}
+                  fetchMessages={fetchMessages}
                 />
               </>
             )}
@@ -55,7 +143,25 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             borderRadius="lg"
             overflowY="hidden"
           >
-            {/* {messges} */}
+            {loading ? (
+              <Spinner alignSelf="center" margin="auto" />
+            ) : (
+              <>
+                <div className="messages">
+                  <ScrollableChat messages={messages} />
+                </div>
+              </>
+            )}
+
+            <FormControl isRequired mt={3} onKeyDown={sendMessage}>
+              <Input
+                variant="filled"
+                bg="#E0E0E0"
+                placeholder="Enter a message"
+                value={newMessage}
+                onChange={typingHandler}
+              />
+            </FormControl>
           </Box>
         </>
       ) : (

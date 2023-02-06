@@ -11,12 +11,14 @@ import {
 } from '@chakra-ui/react';
 import { useHistory } from 'react-router-dom';
 import axios from 'axios';
+import { ChatState } from './../../context/ChatProvider';
 
 const Login = () => {
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { setUser } = ChatState();
 
   const toast = useToast();
   const history = useHistory();
@@ -58,6 +60,7 @@ const Login = () => {
       );
       setLoading(false);
       localStorage.setItem('userInfo', JSON.stringify(result.data));
+      setUser(result.data);
       history.push('/chats');
     } catch (error) {
       toast({

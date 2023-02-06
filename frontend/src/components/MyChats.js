@@ -2,7 +2,7 @@ import { Box, useToast, Button, Text, Stack } from '@chakra-ui/react';
 import { AddIcon } from '@chakra-ui/icons';
 
 import axios from 'axios';
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 
 import { ChatState } from '../context/ChatProvider';
 import GroupChatModal from './ui/GroupChatModal';
@@ -11,7 +11,7 @@ import ChatLoading from './ChatLoading';
 
 const MyChats = ({ fetchAgain }) => {
   const { selectedChat, setSelectedChat, user, chats, setChats } = ChatState();
-
+  const [logedInUser, setLogedInUser] = useState();
   const toast = useToast();
 
   const fetchChats = async () => {
@@ -35,7 +35,7 @@ const MyChats = ({ fetchAgain }) => {
     }
   };
   useEffect(() => {
-    console.log('useEff');
+    setLogedInUser(JSON.parse(localStorage.getItem('userInfo')));
     fetchChats();
   }, [fetchAgain]);
 
@@ -95,7 +95,7 @@ const MyChats = ({ fetchAgain }) => {
               >
                 <Text>
                   {!chat.isGroupChat
-                    ? getSender(user, chat.users)
+                    ? getSender(logedInUser, chat.users)
                     : chat.chatName}
                 </Text>
               </Box>

@@ -21,7 +21,7 @@ const Signup = () => {
   const [pic, setPic] = useState();
   const [show, setShow] = useState(false);
   const [loading, setLoading] = useState(false);
-  const { user, setUser } = ChatState();
+  const { user, setUser, authUser, setAuthUser } = ChatState();
 
   const toast = useToast();
   const history = useHistory();
@@ -132,7 +132,9 @@ const Signup = () => {
         position: 'bottom',
       });
       setLoading(false);
+      setUser(result.data);
       localStorage.setItem('userInfo', JSON.stringify(result.data));
+      setAuthUser(true);
       history.push('/chats');
     } catch (error) {
       console.log(error);
@@ -153,7 +155,7 @@ const Signup = () => {
         <Input id="name" placeholder="Enter Name" onChange={onSetName} />
       </FormControl>
 
-      <FormControl id="email" isRequired>
+      <FormControl id="email-signup" isRequired>
         <FormLabel>Email</FormLabel>
         <Input
           id="signup-email"
@@ -179,7 +181,7 @@ const Signup = () => {
         </InputGroup>
       </FormControl>
 
-      <FormControl id="confirm-password" isRequired>
+      <FormControl id="confirm-password-signup" isRequired>
         <FormLabel>Confirm Password</FormLabel>
         <InputGroup size="md">
           <Input
