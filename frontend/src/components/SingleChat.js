@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Box,
   FormControl,
@@ -9,7 +9,10 @@ import {
   useToast,
 } from '@chakra-ui/react';
 import axios from 'axios';
+import io from 'socket.io-client';
+import Lottie from 'lottie-react';
 
+import TypingAnimation from '../animation/typing.json';
 import ScrollableChat from './ScrollableChat';
 import { ChatState } from '../context/ChatProvider';
 import { getSender, getSenderUser } from '../config/ChatLogics';
@@ -19,12 +22,49 @@ import ProfileModal from './ui/ProfileModal';
 import './Styles.css';
 
 const SingleChat = ({ fetchAgain, setFetchAgain }) => {
+  const ENDPOINT = 'http://localhost:5000';
+
+  const selectedChatCompare = useRef(null);
+  const socket = useRef(null);
+
+  const [socketConnected, setSocketConnected] = useState(false);
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
   const [newMessage, setNewMessage] = useState();
+  const [typing, setTyping] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
 
   const { user, selectedChat, setSelectedChat } = ChatState();
+
   const toast = useToast();
+
+  useEffect(() => {
+    socket.current = io(ENDPOINT);
+    socket.current.emit('setup', user);
+    socket.current.on('connection', () => {
+      setSocketConnected(true);
+    });
+    socket.current.on('typing', () => setIsTyping(true));
+    socket.current.on('stop typing', () => setIsTyping(false));
+  }, []);
+
+  useEffect(() => {
+    fetchMessages();
+    selectedChatCompare.current = selectedChat;
+  }, [selectedChat]);
+
+  useEffect(() => {
+    socket.current.on('message recieved', (newMessageRecieved) => {
+      if (
+        !selectedChatCompare.current || // if chat is not selected or doesn't match current chat
+        selectedChatCompare.current._id !== newMessageRecieved.chat._id
+      ) {
+        //notificati
+      } else {
+        setMessages([...messages, newMessageRecieved]);
+      }
+    });
+  });
 
   const fetchMessages = async () => {
     if (!selectedChat) {
@@ -40,9 +80,10 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       `/api/v1/message/${selectedChat._id}`,
       config
     );
-    console.log(messages);
     setMessages(data);
     setLoading(false);
+    socket.current.emit('join chat', selectedChat._id);
+
     try {
     } catch (error) {
       toast({
@@ -55,11 +96,11 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
       });
     }
   };
-  useEffect(() => {
-    fetchMessages();
-  }, [selectedChat]);
+
   const sendMessage = async (event) => {
     if (event.key === 'Enter' && newMessage) {
+      socket.current.emit('stop typing', selectedChat._id);
+
       try {
         const config = {
           headers: {
@@ -76,7 +117,7 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
           },
           config
         );
-
+        socket.current.emit('new message', data);
         setMessages([...messages, data]);
       } catch (error) {
         toast({
@@ -94,7 +135,23 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
   const typingHandler = (e) => {
     setNewMessage(e.target.value);
 
-    //typing
+    if (!socketConnected) return;
+
+    if (!typing) {
+      setTyping(true);
+
+      socket.current.emit('typing', selectedChat._id);
+    }
+    let lastTypingTime = new Date().getTime();
+    var timerLength = 3000;
+    setTimeout(() => {
+      var timeNow = new Date().getTime();
+      var timeDiff = timeNow - lastTypingTime;
+      if (timeDiff >= timerLength && typing) {
+        socket.current.emit('stop typing', selectedChat._id);
+        setTyping(false);
+      }
+    }, timerLength);
   };
   return (
     <>
@@ -154,6 +211,15 @@ const SingleChat = ({ fetchAgain, setFetchAgain }) => {
             )}
 
             <FormControl isRequired mt={3} onKeyDown={sendMessage}>
+              {isTyping ? (
+                <Lottie
+                  style={{ width: '70px', marginBottom: '15px', marginLeft: 0 }}
+                  animationData={TypingAnimation}
+                />
+              ) : (
+                <></>
+              )}
+
               <Input
                 variant="filled"
                 bg="#E0E0E0"
