@@ -1,4 +1,4 @@
-import { Box, useToast, Button, Text, Stack } from '@chakra-ui/react';
+import { Box, useToast, Button, Text, Stack, Avatar } from '@chakra-ui/react';
 import { AddIcon } from '@chakra-ui/icons';
 
 import axios from 'axios';
@@ -6,7 +6,7 @@ import React, { useState, useEffect } from 'react';
 
 import { ChatState } from '../context/ChatProvider';
 import GroupChatModal from './ui/GroupChatModal';
-import { getSender } from '../config/ChatLogics';
+import { getSender, getSenderPic } from '../config/ChatLogics';
 import ChatLoading from './ChatLoading';
 
 const MyChats = ({ fetchAgain }) => {
@@ -93,11 +93,29 @@ const MyChats = ({ fetchAgain }) => {
                 borderRadius="lg"
                 key={chat._id}
               >
-                <Text>
-                  {!chat.isGroupChat
-                    ? getSender(logedInUser, chat.users)
-                    : chat.chatName}
-                </Text>
+                <Box display="flex" flexDir="row">
+                  <Avatar
+                    size="sm"
+                    justifySelf="center"
+                    alignSelf="center"
+                    src={getSenderPic(logedInUser, chat.users)}
+                  />
+                  <Box ml="5px">
+                    <Text>
+                      {!chat.isGroupChat
+                        ? getSender(logedInUser, chat.users)
+                        : chat.chatName}
+                    </Text>
+                    {chat.latestMessage && (
+                      <Text fontSize="xs">
+                        <b>{chat.latestMessage.sender.name} : </b>
+                        {chat.latestMessage.content.length > 50
+                          ? chat.latestMessage.content.substring(0, 51) + '...'
+                          : chat.latestMessage.content}
+                      </Text>
+                    )}
+                  </Box>
+                </Box>
               </Box>
             ))}
           </Stack>

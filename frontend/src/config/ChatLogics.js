@@ -4,6 +4,11 @@ export const getSender = (logedUser, users) => {
 export const getSenderUser = (logedUser, users) => {
   return logedUser.id === users[0]._id ? users[1] : users[0];
 };
+export const getSenderPic = (logedUser, users) => {
+  console.log(users[1].name);
+  console.log(users[1].pic);
+  return logedUser.id === users[0]._id ? users[1].pic : users[0].pic;
+};
 
 export const isSameSenderMargin = (messages, m, i, userId) => {
   // console.log(i === messages.length - 1);
